@@ -1,5 +1,6 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+
 const User = require("../models/user");
 
 module.exports.signup = async (req, res) => {
@@ -43,6 +44,17 @@ module.exports.login = async (req, res) => {
     const idToken = jwt.sign({id: rest._id}, process.env.JWT_SECRET, {
         algorithm: "HS256",
         expiresIn: "30m"
+    });
+
+    // set an http only cookie
+    // res.cookie accepts name, value, and options
+    // options include maxAge, expires, path, signed, httpOnly
+    res.cookie("session", idToken, {
+        expires: new Date(Date.now() + (1000 * 60 * 30)),
+        httpOnly: true,
+        path: "/",
+        sameSite: true,
+        secure: process.env.NODE_ENV === "production"
     });
 
     return res.status(200).json({ message: "Successfully logged in.", id_token: idToken });
