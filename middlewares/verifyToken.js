@@ -2,7 +2,8 @@ const jwt = require("jsonwebtoken");
 module.exports.verifyToken = async (req, res, next) => {
     // THIS CODE IS TO VERIFY USER IF JWT IS IN THE COOKIES
     const cookies = cookiesToMap(req.headers.cookie);
-    const session = cookies.get("session");
+    const session = cookies.get("access_token");
+    console.log('session', session);
     if (!session) {
         return res.status(401).json({ message: "Unauthorized - Missing session" });
     }
