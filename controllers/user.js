@@ -49,11 +49,10 @@ module.exports.login = async (req, res) => {
     // set an http only cookie
     // res.cookie accepts name, value, and options
     // options include maxAge, expires, path, signed, httpOnly
-    res.cookie("session", idToken, {
+    res.cookie("access_token", idToken, {
         expires: new Date(Date.now() + (1000 * 60 * 30)),
         httpOnly: true,
         path: "/",
-        sameSite: true,
         secure: process.env.NODE_ENV === "production"
     });
 
