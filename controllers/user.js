@@ -1,5 +1,6 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { refreshtoken } = require("../middlewares/verifyToken");
 
 const User = require("../models/user");
 
@@ -46,17 +47,29 @@ module.exports.login = async (req, res) => {
         expiresIn: "30m"
     });
 
+    const refreshToken = jwt.sign({id: rest._id}, process.env.REFRESH_TOKEN_SECRET, {
+        algorithm: "HS256",
+        expiresIn: "24h"
+    });
+
+    const sessionCookie = {
+        id_token: idToken,
+        refresh_token: refreshToken
+    };
+
+    console.log(JSON.stringify(sessionCookie));
+
     // set an http only cookie
     // res.cookie accepts name, value, and options
     // options include maxAge, expires, path, signed, httpOnly
-    res.cookie("access_token", idToken, {
-        expires: new Date(Date.now() + (1000 * 60 * 30)),
+    res.cookie("session", JSON.stringify(sessionCookie), {
         httpOnly: true,
         path: "/",
-        secure: process.env.NODE_ENV === "production"
+        secure: process.env.NODE_ENV === "production",
+        sameSite: 'lax',
     });
 
-    return res.status(200).json({ message: "Successfully logged in.", id_token: idToken });
+    return res.status(200).json({ message: "Successfully logged in.", session: sessionCookie });
 }
 
 module.exports.me = async (req, res) => {
@@ -66,7 +79,11 @@ module.exports.me = async (req, res) => {
     const user = await User.findById(id, "-password");
 
     if (!user) {
-        return resr.status(404).json({message: "User not found."});
+        return res.status(404).json({message: "User not found."});
     }
     return res.status(200).json(user);
+};
+
+module.exports.refresh = async (req, res) => {
+    return res.status(200).json({ message: "refreshed token successfully" });
 };

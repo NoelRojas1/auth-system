@@ -21,17 +21,12 @@ const allowedOrigins = [
 
 const corsOptionsDelegate = function (req, callback) {
     const origin = req.header('Origin') || req.header('origin');
-    console.log('Origin', origin);
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
         callback(null, { 
             origin: true,
             preflightContinue: false,
             optionsSuccessStatus: 204,
             credentials: true,
-            exposedHeaders: ['set-cookie'],
-            cookie: {
-                sameSite: 'Lax'
-            }
         });
     } else {
         callback(new Error('Not Allowed by CORS'), {
@@ -40,11 +35,11 @@ const corsOptionsDelegate = function (req, callback) {
     }
 }
 
+app.use(cookieParser(process.env.SESSION_SECRET));
 app.options('*', cors());
-app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
+app.use(cors({ credentials: true, origin: "http://localhost:5173"}));
 // app.use(cors(corsOptionsDelegate));
 app.use(express.json());
-app.use(cookieParser());
 
 app.use("/", (req, res, next) => {
     console.log(`${req.method} ${req.url}`);
